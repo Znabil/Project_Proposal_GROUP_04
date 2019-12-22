@@ -617,6 +617,59 @@ networkDS %&gt;%
   scale_x_continuous( name = &quot;Error&quot;) +
   ggtitle(&quot;Exploring Errors by Type.de.terminal&quot;) +
   theme(axis.text.y = element_blank(), axis.title.y = element_blank())</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Question 4</strong>: Predict the type of terminal used depending on multiple variables</li>
+</ol>
+</div>
+<div id="prediction" class="section level3">
+<h3>Prediction</h3>
+<ul>
+<li><strong>Splitting the data into testing/training data</strong></li>
+</ul>
+<pre class="r"><code>trainIndex &lt;- createDataPartition(
+  arcep_QoS$Type.de.terminal,
+  p = .8,
+  list = FALSE,
+  times = 1
+)
+
+training_set &lt;- arcep_QoS[ trainIndex, ] # 80% training set
+test_set &lt;- arcep_QoS[ -trainIndex, ]    # 20% test set</code></pre>
+<ul>
+<li><strong>Applying cross validation to your model</strong></li>
+</ul>
+<pre class="r"><code>fitControl &lt;- trainControl(
+  method = &quot;cv&quot;, # Cross validation
+  number = 10    # 10 fold
+)</code></pre>
+<ul>
+<li><strong>Appropriately handling any missing values</strong></li>
+</ul>
+<pre class="r"><code># Remove rows containing NA
+arcep_QoS &lt;- na.omit(arcep_QoS)</code></pre>
+<ul>
+<li><strong>Appropriately using categorical variables</strong></li>
+</ul>
+<pre class="r"><code>arcep_QoS &lt;- dummy_cols(arcep_QoS, select_columns = c(&quot;Service&quot;, &quot;Usage&quot;), remove_selected_columns = TRUE) </code></pre>
+<ul>
+<li><strong>Using a grid search to find the best parameters for you model of interest </strong></li>
+</ul>
+<pre class="r"><code># Create a grid of parameters to search through 
+# mincriterion = 0.95    =&gt;    p-value &lt; 0.05 to split node
+# maxdepth = 10   =&gt;   limits tree scale
+grid &lt;- expand.grid(.mincriterion = 0.95, .maxdepth = 10 )</code></pre>
+<ul>
+<li><strong>Employing the algorithm of interest</strong></li>
+</ul>
+<pre class="r"><code># Training
+fit_ctree2 &lt;- train(
+  Type.de.terminal ~ .,    
+  data = training_set,
+  preProcess = &quot;range&quot;,
+  method = &quot;ctree2&quot;,            # Fit a classification tree model
+  trControl = fitControl,
+  tuneGrid = grid
+)</code></pre>
 </div>
 </div>
 <div id="results-of-analysis" class="section level2">

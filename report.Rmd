@@ -277,6 +277,63 @@ networkDS %>%
   theme(axis.text.y = element_blank(), axis.title.y = element_blank())
 ```
 
+
+2. **Question 4**: Predict the type of terminal used depending on multiple variables
+    
+### Prediction
+  + **Splitting the data into testing/training data**
+```{r eval=FALSE}
+trainIndex <- createDataPartition(
+  arcep_QoS$Type.de.terminal,
+  p = .8,
+  list = FALSE,
+  times = 1
+)
+
+training_set <- arcep_QoS[ trainIndex, ] # 80% training set
+test_set <- arcep_QoS[ -trainIndex, ] 	 # 20% test set
+```
+
+  + **Applying cross validation to your model**
+```{r eval=FALSE}
+fitControl <- trainControl(
+  method = "cv", # Cross validation
+  number = 10    # 10 fold
+)
+```
+
+  + **Appropriately handling any missing values**
+```{r eval=FALSE}
+# Remove rows containing NA
+arcep_QoS <- na.omit(arcep_QoS)
+```
+
+  + **Appropriately using categorical variables**
+```{r eval=FALSE}
+arcep_QoS <- dummy_cols(arcep_QoS, select_columns = c("Service", "Usage"), remove_selected_columns = TRUE) 
+```
+  
+  + **Using a grid search to find the best parameters for you model of interest **
+```{r eval=FALSE}
+# Create a grid of parameters to search through 
+# mincriterion = 0.95    =>    p-value < 0.05 to split node
+# maxdepth = 10   =>   limits tree scale
+grid <- expand.grid(.mincriterion = 0.95, .maxdepth = 10 )
+```
+
+  + **Employing the algorithm of interest**
+```{r eval=FALSE}
+# Training
+fit_ctree2 <- train(
+  Type.de.terminal ~ .,    
+  data = training_set,
+  preProcess = "range",
+  method = "ctree2",			# Fit a classification tree model
+  trControl = fitControl,
+  tuneGrid = grid
+)
+```
+
 ## Results of analysis :
 
 1. **Question 1**: does the type of network used (2g ,3G) effect  the quality of our wireless services ?
